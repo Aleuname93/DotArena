@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from 'react'
-import type { User } from '@supabase/supabase-js'
-import { fetchMyStats, fetchLeaderboard, getPlayerFromUser, type PlayerStats } from '../lib/playerStats'
+import type { AuthUser } from './useAuth'
+import { fetchMyStats, fetchLeaderboard, type PlayerStats } from '../lib/playerStats'
 
 export interface ProfileState {
   open: boolean
@@ -12,7 +12,7 @@ export interface ProfileState {
   refresh: () => void
 }
 
-export function useProfile(user: User | null): ProfileState {
+export function useProfile(user: AuthUser | null): ProfileState {
   const [open, setOpen] = useState(false)
   const [myStats, setMyStats] = useState<PlayerStats | null>(null)
   const [leaderboard, setLeaderboard] = useState<PlayerStats[]>([])
