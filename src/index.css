@@ -1,0 +1,97 @@
+@import 'tailwindcss';
+
+@font-face {
+  font-family: 'Press Start 2P';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('https://static.figma.com/font/PressStart2P-Regular_1') format('woff2');
+}
+
+@theme {
+  --font-pixel: 'Press Start 2P', monospace;
+}
+
+* {
+  scrollbar-width: none;
+  image-rendering: pixelated;
+}
+*::-webkit-scrollbar {
+  display: none;
+}
+
+body {
+  background-color: #0a0a0a;
+  color: #00ff41;
+  font-family: 'Press Start 2P', monospace;
+}
+
+@keyframes blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+@keyframes scanline {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
+
+@keyframes flicker {
+  0%, 97%, 100% { opacity: 1; }
+  98% { opacity: 0.85; }
+  99% { opacity: 0.92; }
+}
+
+.pixel-blink {
+  animation: blink 1s step-end infinite;
+}
+
+.crt {
+  animation: flicker 8s infinite;
+  position: relative;
+}
+
+.crt::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.15) 2px,
+    rgba(0, 0, 0, 0.15) 4px
+  );
+  pointer-events: none;
+  z-index: 9999;
+}
+
+.pixel-border {
+  box-shadow:
+    0 -4px 0 0 currentColor,
+    0 4px 0 0 currentColor,
+    -4px 0 0 0 currentColor,
+    4px 0 0 0 currentColor;
+}
+
+.pixel-border-p1 {
+  box-shadow:
+    0 -4px 0 0 #ff3333,
+    0 4px 0 0 #ff3333,
+    -4px 0 0 0 #ff3333,
+    4px 0 0 0 #ff3333;
+}
+
+.pixel-border-p2 {
+  box-shadow:
+    0 -4px 0 0 #3399ff,
+    0 4px 0 0 #3399ff,
+    -4px 0 0 0 #3399ff,
+    4px 0 0 0 #3399ff;
+}
+
+@keyframes last-move-pulse {
+  0%   { opacity: 1; filter: brightness(2.5) drop-shadow(0 0 6px currentColor); }
+  60%  { opacity: 1; filter: brightness(1.6) drop-shadow(0 0 3px currentColor); }
+  100% { opacity: 1; filter: brightness(1)   drop-shadow(0 0 0px currentColor); }
+}

@@ -1,0 +1,11 @@
+{
+  "title": "Dot Arena",
+  "description": "Dot Arena — jogo multiplayer online de pontos e caixas estilo arcade 8-bit.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
