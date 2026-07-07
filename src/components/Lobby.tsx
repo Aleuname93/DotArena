@@ -8,9 +8,10 @@ interface LobbyProps {
   onCancel: () => void
   onOpenProfile?: () => void
   playerName?: string
+  onSignOut?: () => void
 }
 
-export default function Lobby({ status, searchSeconds, onFind, onCancel, onOpenProfile, playerName }: LobbyProps) {
+export default function Lobby({ status, searchSeconds, onFind, onCancel, onOpenProfile, playerName, onSignOut }: LobbyProps) {
   const [gridSize, setGridSize] = useState(5)
   const [frame, setFrame] = useState(0)
 
@@ -222,9 +223,17 @@ export default function Lobby({ status, searchSeconds, onFind, onCancel, onOpenP
           )}
         </div>
 
-        <p className="text-white/15 text-[6px] font-pixel text-center">
-          © 2024 DOT ARENA • INSERT COIN
-        </p>
+        <div className="flex items-center gap-4">
+          <p className="text-white/15 text-[6px] font-pixel text-center">
+            © 2024 DOT ARENA • INSERT COIN
+          </p>
+          {onSignOut && (
+            <button onClick={onSignOut}
+              className="text-white/20 text-[6px] font-pixel hover:text-[#ff3333] transition-colors">
+              SAIR
+            </button>
+          )}
+        </div>
       </div>
     </div>
   )

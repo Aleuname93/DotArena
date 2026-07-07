@@ -1,38 +1,46 @@
 // @refresh reset
-// v4
+// v6
 import { useEffect, useRef } from 'react'
+import { useAuth } from './hooks/useAuth'
 import { useMatchmaking } from './hooks/useMatchmaking'
 import { useProfile } from './hooks/useProfile'
-import { postResult, getLocalPlayer } from './lib/playerStats'
+import { postResult, getPlayerFromUser } from './lib/playerStats'
+import AuthScreen from './components/AuthScreen'
 import Lobby from './components/Lobby'
 import GameBoard from './components/GameBoard'
 import Profile from './components/Profile'
 
 export default function App() {
+  const auth = useAuth()
+  const { step, user, signOut } = auth
+
   const {
     status, myPlayer, game, isMyTurn, searchSeconds,
     lastOpponentMove, lastMoveKey,
     findMatch, cancelSearch, sendMove, sendRestart, leaveGame,
   } = useMatchmaking()
 
-  const profile = useProfile()
+  const profile = useProfile(user ?? null)
   const reportedRef = useRef(false)
 
-  // Report result when game finishes (online only, not bot)
+  // Save result after online game ends
   useEffect(() => {
-    if (!game.finished || status !== 'playing' || !myPlayer || reportedRef.current) return
+    if (!game.finished || status !== 'playing' || !myPlayer || !user || reportedRef.current) return
     reportedRef.current = true
     const result = game.winner === null ? 'draw' : game.winner === myPlayer ? 'win' : 'loss'
-    postResult(result).then(stats => {
-      if (stats) profile.refresh()
-    })
+    postResult(user, result).then(stats => { if (stats) profile.refresh() })
   }, [game.finished, game.winner, myPlayer, status]) // eslint-disable-line
 
-  // Reset reporter on new game
   useEffect(() => {
     if (!game.finished) reportedRef.current = false
   }, [game.finished])
 
+  // Auth screens (loading, email, OTP, name)
+  if (step !== 'authenticated') {
+    return <AuthScreen auth={auth} />
+  }
+
+  // Game screen
   if ((status === 'playing' || status === 'playing_bot' || status === 'opponent_left') && myPlayer) {
     return (
       <GameBoard
@@ -50,6 +58,8 @@ export default function App() {
     )
   }
 
+  const player = user ? getPlayerFromUser(user) : null
+
   return (
     <>
       <Lobby
@@ -58,9 +68,10 @@ export default function App() {
         onFind={findMatch}
         onCancel={cancelSearch}
         onOpenProfile={profile.openProfile}
-        playerName={getLocalPlayer().name}
+        playerName={player?.name}
+        onSignOut={signOut}
       />
-      <Profile profile={profile} />
+      <Profile profile={profile} user={user} />
     </>
   )
 }
