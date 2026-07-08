@@ -115,6 +115,8 @@ export function useMatchmaking(): MatchState {
   }>({ search: null, bot: null, botMove: null })
 
   const { status, myPlayer, game, searchSeconds, lastOpponentMove, lastMoveKey } = state
+  const statusRef = useRef(status)
+  statusRef.current = status
 
   const isMyTurn =
     myPlayer !== null &&
@@ -189,6 +191,11 @@ export function useMatchmaking(): MatchState {
   }, [])
 
   const findMatch = useCallback((gridSize = 5) => {
+    if (statusRef.current === 'searching' || statusRef.current === 'matched' || statusRef.current === 'playing' || statusRef.current === 'playing_bot') {
+      console.log('[MATCHMAKING] Ignorado — já está em busca ou partida')
+      return
+    }
+
     console.log('[MATCHMAKING] Meu ID:', myId.current, '— procurando tabuleiro', gridSize)
     gridSizeRef.current = gridSize
     cleanup()
