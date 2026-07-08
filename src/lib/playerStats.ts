@@ -1,6 +1,6 @@
 import type { AuthUser } from '../hooks/useAuth'
 
-const BASE = 'https://egpanvytcbdvlxueykju.supabase.co/functions/v1/make-server-9d32eba6'
+const BASE = 'https://egpanvytcbdvlxueykju.supabase.co/functions/v1/server'
 
 export interface PlayerStats {
   playerId: string
