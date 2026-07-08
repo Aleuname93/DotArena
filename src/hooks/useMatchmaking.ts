@@ -1,4 +1,6 @@
-// @refresh reset
+Encontrei exatamente o problema! Confirmado: sobrou um pedaço duplicado e "solto" de uma correção anterior, bem depois do fechamento da função findMatch — repare que tem um bloco ch.on('presence', ...) inteiro flutuando fora de qualquer função, sem contexto, isso é o resto da versão antiga que ficou colado sem querer.
+Vou te passar o arquivo completo e limpo dessa vez — copie exatamente isso, substituindo o arquivo inteiro:
+ts// @refresh reset
 import { useCallback, useEffect, useReducer, useRef } from 'react'
 import type { RealtimeChannel } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
@@ -187,7 +189,7 @@ export function useMatchmaking(): MatchState {
     gameChannelRef.current = ch
   }, [])
 
-   const findMatch = useCallback((gridSize = 5) => {
+  const findMatch = useCallback((gridSize = 5) => {
     gridSizeRef.current = gridSize
     cleanup()
     dispatch({ type: 'SEARCHING', gridSize })
@@ -221,29 +223,6 @@ export function useMatchmaking(): MatchState {
       ch.unsubscribe()
       matchChannelRef.current = null
       joinGameChannel(roomId, asPlayer, gridSize)
-    })
-
-    ch.subscribe(async (s) => {
-      if (s === 'SUBSCRIBED') await ch.track({ playerId: myId.current, joinedAt: Date.now() })
-    })
-
-    matchChannelRef.current = ch
-  }, [cleanup, clearTimers, joinGameChannel])
-
-   ch.on('presence', { event: 'sync' }, async () => {
-      const s = ch.presenceState<PresenceState>()
-      const players = Object.values(s).flat().sort((a, b) => a.joinedAt - b.joinedAt)
-      if (players.length < 2 || players[0].playerId !== myId.current) return
-
-      const payload = { p1: players[0].playerId, p2: players[1].playerId, roomId: makeId(), gridSize }
-
-      await ch.send({ type: 'broadcast', event: 'match', payload })
-
-      // Só desconecta DEPOIS de confirmar que a mensagem foi enviada de verdade.
-      clearTimers()
-      ch.unsubscribe()
-      matchChannelRef.current = null
-      joinGameChannel(payload.roomId, 1, payload.gridSize)
     })
 
     ch.subscribe(async (s) => {
