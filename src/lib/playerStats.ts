@@ -1,4 +1,4 @@
-mport type { AuthUser } from '../hooks/useAuth'
+import type { AuthUser } from '../hooks/useAuth'
 import { supabase } from './supabase'
 
 const BASE = 'https://egpanvytcbdvlxueykju.supabase.co/functions/v1/server'
