@@ -122,7 +122,6 @@ export function useAuth(): AuthState {
 
   return { step: state.step, user, error: state.error, sending: state.sending, setDisplayName, linkGoogle, signOut }
 }
-2. Novo AuthScreen (substitua o arquivo inteiro)
 tsximport { useState, useEffect } from 'react'
 import type { AuthState } from '../hooks/useAuth'
 
