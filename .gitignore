@@ -9,3 +9,18 @@ vite.config.*.timestamp-*
 *-debug.log*
 .claude-replay.*
 .tmp-*
+# Android build outputs e chaves de assinatura
+*.jks
+*.keystore
+android/app/release/
+android/app/build/
+*.aab
+*.apk
+
+# Android build outputs e chaves de assinatura
+*.jks
+*.keystore
+android/app/release/
+android/app/build/
+*.aab
+*.apk
