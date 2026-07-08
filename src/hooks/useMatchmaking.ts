@@ -187,7 +187,7 @@ export function useMatchmaking(): MatchState {
     gameChannelRef.current = ch
   }, [])
 
-  const findMatch = useCallback((gridSize = 5) => {
+   const findMatch = useCallback((gridSize = 5) => {
     gridSizeRef.current = gridSize
     cleanup()
     dispatch({ type: 'SEARCHING', gridSize })
@@ -202,18 +202,33 @@ export function useMatchmaking(): MatchState {
       dispatch({ type: 'START_BOT', gridSize })
     }, BOT_TIMEOUT_SEC * 1000)
 
-    const ch = supabase.channel('matchmaking', {
+    const ch = supabase.channel(`matchmaking:${gridSize}`, {
       config: { presence: { key: myId.current }, broadcast: { self: false } },
     })
 
-    ch.on('broadcast', { event: 'match' }, ({ payload }: { payload: { p1: string; p2: string; roomId: string; gridSize: number } }) => {
-      if (payload.p1 !== myId.current && payload.p2 !== myId.current) return
+    ch.on('presence', { event: 'sync' }, () => {
+      const s = ch.presenceState<PresenceState>()
+      const players = Object.values(s).flat()
+        .sort((a, b) => a.joinedAt - b.joinedAt || a.playerId.localeCompare(b.playerId))
+
+      if (players.length < 2) return
+
+      const [p1, p2] = players
+      const roomId = [p1.playerId, p2.playerId].sort().join('_')
+      const asPlayer: Player = myId.current === p1.playerId ? 1 : 2
+
       clearTimers()
-      const asPlayer: Player = payload.p1 === myId.current ? 1 : 2
       ch.unsubscribe()
       matchChannelRef.current = null
-      joinGameChannel(payload.roomId, asPlayer, payload.gridSize)
+      joinGameChannel(roomId, asPlayer, gridSize)
     })
+
+    ch.subscribe(async (s) => {
+      if (s === 'SUBSCRIBED') await ch.track({ playerId: myId.current, joinedAt: Date.now() })
+    })
+
+    matchChannelRef.current = ch
+  }, [cleanup, clearTimers, joinGameChannel])
 
    ch.on('presence', { event: 'sync' }, async () => {
       const s = ch.presenceState<PresenceState>()
