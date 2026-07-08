@@ -163,6 +163,7 @@ export function useMatchmaking(): MatchState {
   }, [status, game.currentPlayer, game.finished, triggerBotMove])
 
   const joinGameChannel = useCallback((roomId: string, asPlayer: Player, gs: number) => {
+    console.log('[MATCHMAKING] Entrando na sala', roomId, 'como Player', asPlayer)
     dispatch({ type: 'MATCHED', asPlayer, gridSize: gs })
 
     const ch = supabase.channel(`game:${roomId}`, {
@@ -188,6 +189,7 @@ export function useMatchmaking(): MatchState {
   }, [])
 
   const findMatch = useCallback((gridSize = 5) => {
+    console.log('[MATCHMAKING] Meu ID:', myId.current, '— procurando tabuleiro', gridSize)
     gridSizeRef.current = gridSize
     cleanup()
     dispatch({ type: 'SEARCHING', gridSize })
@@ -196,6 +198,7 @@ export function useMatchmaking(): MatchState {
     t.search = setInterval(() => dispatch({ type: 'TICK' }), 1000)
 
     t.bot = setTimeout(() => {
+      console.log('[MATCHMAKING] Timeout de 30s — indo para o bot')
       matchChannelRef.current?.unsubscribe()
       matchChannelRef.current = null
       clearTimers()
@@ -211,11 +214,15 @@ export function useMatchmaking(): MatchState {
       const players = Object.values(s).flat()
         .sort((a, b) => a.joinedAt - b.joinedAt || a.playerId.localeCompare(b.playerId))
 
+      console.log('[MATCHMAKING] Presence sync — jogadores na fila:', players.length, players.map(p => p.playerId))
+
       if (players.length < 2) return
 
       const [p1, p2] = players
       const roomId = [p1.playerId, p2.playerId].sort().join('_')
       const asPlayer: Player = myId.current === p1.playerId ? 1 : 2
+
+      console.log('[MATCHMAKING] Match encontrado! Sala:', roomId, 'Eu sou Player', asPlayer)
 
       clearTimers()
       ch.unsubscribe()
@@ -224,7 +231,11 @@ export function useMatchmaking(): MatchState {
     })
 
     ch.subscribe(async (s) => {
-      if (s === 'SUBSCRIBED') await ch.track({ playerId: myId.current, joinedAt: Date.now() })
+      console.log('[MATCHMAKING] Status do canal:', s)
+      if (s === 'SUBSCRIBED') {
+        const trackResult = await ch.track({ playerId: myId.current, joinedAt: Date.now() })
+        console.log('[MATCHMAKING] Track result:', trackResult)
+      }
     })
 
     matchChannelRef.current = ch
