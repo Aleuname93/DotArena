@@ -1,6 +1,4 @@
-Não, boa pergunta pra confirmar antes de fazer besteira! Aquilo era só a função findMatch que muda — o resto do arquivo (useMatchmaking.ts) continua exatamente igual como estava antes. Se você substituir o arquivo inteiro só por aquele trecho, vai quebrar tudo (faltam os imports, o reducer, as outras funções, etc.).
-Pra deixar 100% seguro, aqui está o arquivo completo, já com a correção aplicada — é esse que você deve colar substituindo o useMatchmaking.ts inteiro:
-ts// @refresh reset
+// @refresh reset
 import { useCallback, useEffect, useReducer, useRef } from 'react'
 import type { RealtimeChannel } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
