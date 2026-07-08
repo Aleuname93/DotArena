@@ -215,17 +215,16 @@ export function useMatchmaking(): MatchState {
       joinGameChannel(payload.roomId, asPlayer, payload.gridSize)
     })
 
-    ch.on('presence', { event: 'sync' }, () => {
+   ch.on('presence', { event: 'sync' }, async () => {
       const s = ch.presenceState<PresenceState>()
       const players = Object.values(s).flat().sort((a, b) => a.joinedAt - b.joinedAt)
       if (players.length < 2 || players[0].playerId !== myId.current) return
 
       const payload = { p1: players[0].playerId, p2: players[1].playerId, roomId: makeId(), gridSize }
 
-      ch.send({ type: 'broadcast', event: 'match', payload })
+      await ch.send({ type: 'broadcast', event: 'match', payload })
 
-      // O remetente não recebe o próprio broadcast (self: false),
-      // então ele mesmo precisa entrar na partida diretamente.
+      // Só desconecta DEPOIS de confirmar que a mensagem foi enviada de verdade.
       clearTimers()
       ch.unsubscribe()
       matchChannelRef.current = null
