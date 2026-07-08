@@ -17,7 +17,7 @@ app.use(
   }),
 );
 
-app.get("/make-server-9d32eba6/health", (c) => {
+app.get("/health", (c) => {
   return c.json({ status: "ok" });
 });
 
@@ -30,8 +30,7 @@ interface PlayerStats {
   lastSeen: string
 }
 
-// Registra o resultado de uma partida (vitória, derrota ou empate)
-app.post("/make-server-9d32eba6/stats", async (c) => {
+app.post("/stats", async (c) => {
   const body = await c.req.json();
   const { playerId, name, result } = body as { playerId: string; name: string; result: 'win' | 'loss' | 'draw' };
 
@@ -55,16 +54,14 @@ app.post("/make-server-9d32eba6/stats", async (c) => {
   return c.json(updated);
 });
 
-// Busca as estatísticas de um jogador específico
-app.get("/make-server-9d32eba6/stats/:id", async (c) => {
+app.get("/stats/:id", async (c) => {
   const playerId = c.req.param('id');
   const stats = await kv.get(`stats:${playerId}`);
   if (!stats) return c.json({ error: "not found" }, 404);
   return c.json(stats);
 });
 
-// Busca o ranking geral (top jogadores por vitórias)
-app.get("/make-server-9d32eba6/leaderboard", async (c) => {
+app.get("/leaderboard", async (c) => {
   const all: PlayerStats[] = await kv.getByPrefix('stats:');
   const sorted = all.sort((a, b) => b.wins - a.wins).slice(0, 50);
   return c.json(sorted);
