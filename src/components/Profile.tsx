@@ -4,9 +4,10 @@ import type { ProfileState } from '../hooks/useProfile'
 interface Props {
   profile: ProfileState
   user: AuthUser | null
+  onLinkGoogle?: () => void
 }
 
-export default function Profile({ profile, user }: Props) {
+export default function Profile({ profile, user, onLinkGoogle }: Props) {
   const { open, myStats, leaderboard, loading, closeProfile, refresh } = profile
   if (!open || !user) return null
 
@@ -36,10 +37,18 @@ export default function Profile({ profile, user }: Props) {
             </div>
             <div>
               <p className="text-[#00ff41] text-[11px] font-pixel">{user.name}</p>
-              <p className="text-white/30 text-[6px] font-pixel mt-0.5 truncate">{user.email}</p>
+              <p className="text-white/30 text-[6px] font-pixel mt-0.5 truncate">{user.email || 'CONTA TEMPORÁRIA'}</p>
               {myRank > 0 && <p className="text-[#ffdd00] text-[7px] font-pixel mt-0.5">#{myRank} NO RANKING</p>}
             </div>
           </div>
+
+          {user.isAnonymous && onLinkGoogle && (
+            <button onClick={onLinkGoogle}
+              className="w-full py-3 text-[8px] font-pixel transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
+              style={{ backgroundColor: '#ffdd00', color: '#000', border: '2px solid #ffdd00', boxShadow: '3px 3px 0 #3a3300' }}>
+              ★ SALVAR PROGRESSO COM GOOGLE
+            </button>
+          )}
 
           {loading && !myStats ? (
             <p className="text-[#00ff41]/50 text-[8px] font-pixel text-center py-4 pixel-blink">CARREGANDO...</p>
