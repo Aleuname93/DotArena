@@ -99,24 +99,26 @@ function makeId() {
   return Math.random().toString(36).slice(2) + Date.now().toString(36)
 }
 
-interface PresenceState { playerId: string; joinedAt: number }
-const BOT_TIMEOUT_SEC = 30
+const BOT_TIMEOUT_SEC = 15
+const POLL_INTERVAL_MS = 1200
+const STALE_SECONDS = 25
 
 export function useMatchmaking(): MatchState {
   const [state, dispatch] = useReducer(reducer, INIT)
   const myId = useRef(makeId())
   const gridSizeRef = useRef(5)
-  const matchChannelRef = useRef<RealtimeChannel | null>(null)
   const gameChannelRef = useRef<RealtimeChannel | null>(null)
+  const statusRef = useRef<MatchStatus>('idle')
+  statusRef.current = state.status
+
   const timersRef = useRef<{
     search: ReturnType<typeof setInterval> | null
     bot: ReturnType<typeof setTimeout> | null
+    poll: ReturnType<typeof setInterval> | null
     botMove: ReturnType<typeof setTimeout> | null
-  }>({ search: null, bot: null, botMove: null })
+  }>({ search: null, bot: null, poll: null, botMove: null })
 
   const { status, myPlayer, game, searchSeconds, lastOpponentMove, lastMoveKey } = state
-  const statusRef = useRef(status)
-  statusRef.current = status
 
   const isMyTurn =
     myPlayer !== null &&
@@ -128,16 +130,22 @@ export function useMatchmaking(): MatchState {
     const t = timersRef.current
     if (t.search) { clearInterval(t.search); t.search = null }
     if (t.bot) { clearTimeout(t.bot); t.bot = null }
+    if (t.poll) { clearInterval(t.poll); t.poll = null }
     if (t.botMove) { clearTimeout(t.botMove); t.botMove = null }
+  }, [])
+
+  const removeFromQueue = useCallback(async () => {
+    try {
+      await supabase.from('matchmaking_queue').delete().eq('player_id', myId.current)
+    } catch { /* ignore */ }
   }, [])
 
   const cleanup = useCallback(() => {
     clearTimers()
-    matchChannelRef.current?.unsubscribe()
     gameChannelRef.current?.unsubscribe()
-    matchChannelRef.current = null
     gameChannelRef.current = null
-  }, [clearTimers])
+    removeFromQueue()
+  }, [clearTimers, removeFromQueue])
 
   const gameRef = useRef(game)
   gameRef.current = game
@@ -190,6 +198,73 @@ export function useMatchmaking(): MatchState {
     gameChannelRef.current = ch
   }, [])
 
+  const pollForMatch = useCallback(async (gridSize: number) => {
+    if (statusRef.current !== 'searching') return
+
+    // 1. Será que alguém já me encontrou e preencheu minha sala?
+    const { data: mine } = await supabase
+      .from('matchmaking_queue')
+      .select('room_id')
+      .eq('player_id', myId.current)
+      .maybeSingle()
+
+    if (mine?.room_id) {
+      const ids = mine.room_id.split('_')
+      const asPlayer: Player = ids[0] === myId.current ? 1 : 2
+      console.log('[MATCHMAKING] Fui encontrado! Sala:', mine.room_id, 'Player', asPlayer)
+      clearTimers()
+      await removeFromQueue()
+      joinGameChannel(mine.room_id, asPlayer, gridSize)
+      return
+    }
+
+    // 2. Procura alguém esperando o mesmo tamanho de tabuleiro
+    const staleBefore = new Date(Date.now() - STALE_SECONDS * 1000).toISOString()
+    const { data: candidates } = await supabase
+      .from('matchmaking_queue')
+      .select('player_id, created_at')
+      .eq('grid_size', gridSize)
+      .is('room_id', null)
+      .neq('player_id', myId.current)
+      .gt('created_at', staleBefore)
+      .order('created_at', { ascending: true })
+      .limit(1)
+
+    const candidate = candidates?.[0]
+    if (!candidate) return
+
+    const roomId = [myId.current, candidate.player_id].sort().join('_')
+    console.log('[MATCHMAKING] Candidato encontrado:', candidate.player_id, '— tentando sala', roomId)
+
+    // 3. Tenta "reservar" as duas linhas com esse roomId (só se ainda estiverem livres)
+    const { data: myClaim } = await supabase
+      .from('matchmaking_queue')
+      .update({ room_id: roomId })
+      .eq('player_id', myId.current)
+      .is('room_id', null)
+      .select()
+
+    if (!myClaim || myClaim.length === 0) return // alguém mexeu na minha linha, tenta de novo no próximo tick
+
+    const { data: theirClaim } = await supabase
+      .from('matchmaking_queue')
+      .update({ room_id: roomId })
+      .eq('player_id', candidate.player_id)
+      .is('room_id', null)
+      .select()
+
+    if (!theirClaim || theirClaim.length === 0) {
+      // Candidato foi pego por outra pessoa entre a leitura e a escrita — libera minha linha e tenta de novo
+      await supabase.from('matchmaking_queue').update({ room_id: null }).eq('player_id', myId.current)
+      return
+    }
+
+    console.log('[MATCHMAKING] Match confirmado! Sala:', roomId)
+    const asPlayer: Player = myId.current === [myId.current, candidate.player_id].sort()[0] ? 1 : 2
+    clearTimers()
+    joinGameChannel(roomId, asPlayer, gridSize)
+  }, [clearTimers, removeFromQueue, joinGameChannel])
+
   const findMatch = useCallback((gridSize = 5) => {
     if (statusRef.current === 'searching' || statusRef.current === 'matched' || statusRef.current === 'playing' || statusRef.current === 'playing_bot') {
       console.log('[MATCHMAKING] Ignorado — já está em busca ou partida')
@@ -198,55 +273,29 @@ export function useMatchmaking(): MatchState {
 
     console.log('[MATCHMAKING] Meu ID:', myId.current, '— procurando tabuleiro', gridSize)
     gridSizeRef.current = gridSize
-    cleanup()
+    clearTimers()
     dispatch({ type: 'SEARCHING', gridSize })
+
+    supabase.from('matchmaking_queue').upsert({
+      player_id: myId.current,
+      grid_size: gridSize,
+      room_id: null,
+      created_at: new Date().toISOString(),
+    }).then(() => {
+      console.log('[MATCHMAKING] Entrei na fila')
+    })
 
     const t = timersRef.current
     t.search = setInterval(() => dispatch({ type: 'TICK' }), 1000)
+    t.poll = setInterval(() => pollForMatch(gridSize), POLL_INTERVAL_MS)
 
     t.bot = setTimeout(() => {
-      console.log('[MATCHMAKING] Timeout de 30s — indo para o bot')
-      matchChannelRef.current?.unsubscribe()
-      matchChannelRef.current = null
+      console.log('[MATCHMAKING] Timeout — indo para o bot')
       clearTimers()
+      removeFromQueue()
       dispatch({ type: 'START_BOT', gridSize })
     }, BOT_TIMEOUT_SEC * 1000)
-
-    const ch = supabase.channel(`matchmaking:${gridSize}`, {
-      config: { presence: { key: myId.current }, broadcast: { self: false } },
-    })
-
-    ch.on('presence', { event: 'sync' }, () => {
-      const s = ch.presenceState<PresenceState>()
-      const players = Object.values(s).flat()
-        .sort((a, b) => a.joinedAt - b.joinedAt || a.playerId.localeCompare(b.playerId))
-
-      console.log('[MATCHMAKING] Presence sync — jogadores na fila:', players.length, players.map(p => p.playerId))
-
-      if (players.length < 2) return
-
-      const [p1, p2] = players
-      const roomId = [p1.playerId, p2.playerId].sort().join('_')
-      const asPlayer: Player = myId.current === p1.playerId ? 1 : 2
-
-      console.log('[MATCHMAKING] Match encontrado! Sala:', roomId, 'Eu sou Player', asPlayer)
-
-      clearTimers()
-      ch.unsubscribe()
-      matchChannelRef.current = null
-      joinGameChannel(roomId, asPlayer, gridSize)
-    })
-
-    ch.subscribe(async (s) => {
-      console.log('[MATCHMAKING] Status do canal:', s)
-      if (s === 'SUBSCRIBED') {
-        const trackResult = await ch.track({ playerId: myId.current, joinedAt: Date.now() })
-        console.log('[MATCHMAKING] Track result:', trackResult)
-      }
-    })
-
-    matchChannelRef.current = ch
-  }, [cleanup, clearTimers, joinGameChannel])
+  }, [clearTimers, removeFromQueue, pollForMatch])
 
   const cancelSearch = useCallback(() => {
     cleanup()
