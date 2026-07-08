@@ -51,7 +51,7 @@ export default function App() {
         playerName={user?.name}
         onSignOut={signOut}
       />
-      <Profile profile={profile} user={user} />
+      <Profile profile={profile} user={user} onLinkGoogle={auth.linkGoogle} />
     </>
   )
 }
