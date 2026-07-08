@@ -17,7 +17,7 @@ app.use(
   }),
 );
 
-app.get("/health", (c) => {
+app.get("/server/health", (c) => {
   return c.json({ status: "ok" });
 });
 
@@ -30,7 +30,7 @@ interface PlayerStats {
   lastSeen: string
 }
 
-app.post("/stats", async (c) => {
+app.post("/server/stats", async (c) => {
   const body = await c.req.json();
   const { playerId, name, result } = body as { playerId: string; name: string; result: 'win' | 'loss' | 'draw' };
 
@@ -54,14 +54,14 @@ app.post("/stats", async (c) => {
   return c.json(updated);
 });
 
-app.get("/stats/:id", async (c) => {
+app.get("/server/stats/:id", async (c) => {
   const playerId = c.req.param('id');
   const stats = await kv.get(`stats:${playerId}`);
   if (!stats) return c.json({ error: "not found" }, 404);
   return c.json(stats);
 });
 
-app.get("/leaderboard", async (c) => {
+app.get("/server/leaderboard", async (c) => {
   const all: PlayerStats[] = await kv.getByPrefix('stats:');
   const sorted = all.sort((a, b) => b.wins - a.wins).slice(0, 50);
   return c.json(sorted);
