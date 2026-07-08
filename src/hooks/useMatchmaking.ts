@@ -1,4 +1,6 @@
-// @refresh reset
+Não, boa pergunta pra confirmar antes de fazer besteira! Aquilo era só a função findMatch que muda — o resto do arquivo (useMatchmaking.ts) continua exatamente igual como estava antes. Se você substituir o arquivo inteiro só por aquele trecho, vai quebrar tudo (faltam os imports, o reducer, as outras funções, etc.).
+Pra deixar 100% seguro, aqui está o arquivo completo, já com a correção aplicada — é esse que você deve colar substituindo o useMatchmaking.ts inteiro:
+ts// @refresh reset
 import { useCallback, useEffect, useReducer, useRef } from 'react'
 import type { RealtimeChannel } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
@@ -13,7 +15,6 @@ export type MatchStatus =
   | 'playing_bot'
   | 'opponent_left'
 
-// ── All mutable state in one object — hook count is always 1 useReducer ──
 interface State {
   status: MatchStatus
   myPlayer: Player | null
@@ -104,7 +105,6 @@ interface PresenceState { playerId: string; joinedAt: number }
 const BOT_TIMEOUT_SEC = 30
 
 export function useMatchmaking(): MatchState {
-  // ── Fixed hook order: 1 useReducer + 5 useRef ─────────────────────────
   const [state, dispatch] = useReducer(reducer, INIT)
   const myId = useRef(makeId())
   const gridSizeRef = useRef(5)
@@ -139,7 +139,6 @@ export function useMatchmaking(): MatchState {
     gameChannelRef.current = null
   }, [clearTimers])
 
-  // Keep a ref to latest game so the bot timeout can read it
   const gameRef = useRef(game)
   gameRef.current = game
 
@@ -152,7 +151,6 @@ export function useMatchmaking(): MatchState {
       const move = getBotMove(current)
       if (!move) return
       dispatch({ type: 'BOT_MOVE', move })
-      // If bot captures and goes again, schedule another move
       const next = applyMove(current, move, 2)
       if (!next.finished && next.currentPlayer === 2) {
         triggerBotMove()
@@ -160,14 +158,12 @@ export function useMatchmaking(): MatchState {
     }, 600 + Math.random() * 400)
   }, [])
 
-  // Trigger bot when it's its turn
   useEffect(() => {
     if (status === 'playing_bot' && !game.finished && game.currentPlayer === 2) {
       triggerBotMove()
     }
   }, [status, game.currentPlayer, game.finished, triggerBotMove])
 
-  // ── Matchmaking ───────────────────────────────────────────────────────
   const joinGameChannel = useCallback((roomId: string, asPlayer: Player, gs: number) => {
     dispatch({ type: 'MATCHED', asPlayer, gridSize: gs })
 
@@ -225,11 +221,17 @@ export function useMatchmaking(): MatchState {
       const s = ch.presenceState<PresenceState>()
       const players = Object.values(s).flat().sort((a, b) => a.joinedAt - b.joinedAt)
       if (players.length < 2 || players[0].playerId !== myId.current) return
-      ch.send({
-        type: 'broadcast',
-        event: 'match',
-        payload: { p1: players[0].playerId, p2: players[1].playerId, roomId: makeId(), gridSize },
-      })
+
+      const payload = { p1: players[0].playerId, p2: players[1].playerId, roomId: makeId(), gridSize }
+
+      ch.send({ type: 'broadcast', event: 'match', payload })
+
+      // O remetente não recebe o próprio broadcast (self: false),
+      // então ele mesmo precisa entrar na partida diretamente.
+      clearTimers()
+      ch.unsubscribe()
+      matchChannelRef.current = null
+      joinGameChannel(payload.roomId, 1, payload.gridSize)
     })
 
     ch.subscribe(async (s) => {
