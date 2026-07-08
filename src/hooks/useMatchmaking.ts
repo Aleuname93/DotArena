@@ -1,6 +1,4 @@
-Encontrei exatamente o problema! Confirmado: sobrou um pedaço duplicado e "solto" de uma correção anterior, bem depois do fechamento da função findMatch — repare que tem um bloco ch.on('presence', ...) inteiro flutuando fora de qualquer função, sem contexto, isso é o resto da versão antiga que ficou colado sem querer.
-Vou te passar o arquivo completo e limpo dessa vez — copie exatamente isso, substituindo o arquivo inteiro:
-ts// @refresh reset
+// @refresh reset
 import { useCallback, useEffect, useReducer, useRef } from 'react'
 import type { RealtimeChannel } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
