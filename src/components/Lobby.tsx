@@ -178,7 +178,7 @@ export default function Lobby({ status, searchSeconds, onFind, onCancel, onOpenP
 
               <div>
                 <p className="text-white/30 text-[7px] font-pixel mb-2">
-                  BOT EM {remaining}S SE NAO ENCONTRAR NINGUEM
+                  {remaining}S FOR BOT
                 </p>
                 <div className="w-full h-3 bg-[#111]" style={{ border: '2px solid #333' }}>
                   <div className="h-full transition-all duration-1000"
