@@ -63,7 +63,6 @@ export default function GameBoard({
 
   return (
     <div className="crt min-h-screen bg-[#0a0a0a] flex flex-col items-center justify-center p-4 gap-4">
-      {/* Stars */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         {Array.from({ length: 30 }, (_, i) => (
           <div key={i} className="absolute w-px h-px bg-white rounded-full"
@@ -77,18 +76,16 @@ export default function GameBoard({
       </div>
 
       <div className="relative z-10 w-full flex flex-col items-center gap-4">
-        {/* Header */}
         <div className="flex items-center justify-between w-full max-w-xl">
           <button onClick={onLeave}
             className="text-[#ff3333] text-[7px] font-pixel hover:bg-[#ff333322] px-3 py-2 transition-colors"
             style={{ border: '2px solid #ff333360' }}>
-            ← SAIR
+            ← LEAVE
           </button>
           <p className="text-[#00ff41]/40 text-[7px] font-pixel pixel-blink">DOT ARENA</p>
           <div className="w-16" />
         </div>
 
-        {/* Scoreboard */}
         <div className="flex gap-3 w-full max-w-xl">
           {([myPlayer, opponent] as Player[]).map((p) => {
             const isActive = game.currentPlayer === p && !game.finished
@@ -110,7 +107,7 @@ export default function GameBoard({
                 </p>
                 {isActive && (
                   <p className="text-[6px] font-pixel mt-1 pixel-blink" style={{ color: pColor }}>
-                    {p === myPlayer ? '▶ SUA VEZ' : '⌛ VEZ DELE'}
+                    {p === myPlayer ? '▶ YOUR TURN' : '⌛ THEIR TURN'}
                   </p>
                 )}
               </div>
@@ -118,7 +115,6 @@ export default function GameBoard({
           })}
         </div>
 
-        {/* Turn indicator */}
         {!game.finished && (
           <div className="text-[7px] font-pixel px-4 py-2"
             style={{
@@ -126,11 +122,10 @@ export default function GameBoard({
               border: `2px solid ${isMyTurn ? '#00ff4160' : '#ffffff20'}`,
               boxShadow: isMyTurn ? '0 0 15px #00ff4133' : 'none',
             }}>
-            {isMyTurn ? '▶ CLIQUE EM UMA LINHA' : '⌛ AGUARDANDO...'}
+            {isMyTurn ? '▶ CLICK A LINE' : '⌛ WAITING...'}
           </div>
         )}
 
-        {/* Board */}
         <div className="bg-black p-4 md:p-6"
           style={{
             border: '4px solid #00ff4160',
@@ -148,7 +143,6 @@ export default function GameBoard({
               imageRendering: 'pixelated',
             }}
           >
-            {/* Captured boxes */}
             {Array.from({ length: N }, (_, row) =>
               Array.from({ length: N }, (_, col) => {
                 const owner = game.boxes[row][col]
@@ -180,7 +174,6 @@ export default function GameBoard({
               })
             )}
 
-            {/* Horizontal lines */}
             {Array.from({ length: N + 1 }, (_, row) =>
               Array.from({ length: N }, (_, col) => {
                 const drawn = game.hLines[row][col]
@@ -221,7 +214,6 @@ export default function GameBoard({
               })
             )}
 
-            {/* Vertical lines */}
             {Array.from({ length: N }, (_, row) =>
               Array.from({ length: N + 1 }, (_, col) => {
                 const drawn = game.vLines[row][col]
@@ -262,7 +254,6 @@ export default function GameBoard({
               })
             )}
 
-            {/* Dots — pixelated squares */}
             {Array.from({ length: N + 1 }, (_, row) =>
               Array.from({ length: N + 1 }, (_, col) => {
                 const pulse = (row + col + frame) % 8 === 0
@@ -282,23 +273,21 @@ export default function GameBoard({
           </svg>
         </div>
 
-        {/* Opponent left */}
         {opponentLeft && (
           <div className="fixed inset-0 bg-black/85 flex items-center justify-center z-50 p-4">
             <div className="bg-black p-8 text-center max-w-xs w-full"
               style={{ border: '4px solid #ff3333', boxShadow: '8px 8px 0 #3a0000' }}>
-              <p className="text-[#ff3333] text-[10px] font-pixel mb-2">ADVERSARIO</p>
-              <p className="text-[#ff3333] text-[10px] font-pixel mb-6 pixel-blink">ABANDONOU!</p>
+              <p className="text-[#ff3333] text-[10px] font-pixel mb-2">OPPONENT</p>
+              <p className="text-[#ff3333] text-[10px] font-pixel mb-6 pixel-blink">LEFT THE GAME!</p>
               <button onClick={onLeave}
                 className="w-full py-3 text-[9px] font-pixel bg-[#00ff41] text-black hover:bg-[#00cc33] transition-colors"
                 style={{ boxShadow: '4px 4px 0 #003a0f' }}>
-                NOVA PARTIDA
+                NEW GAME
               </button>
             </div>
           </div>
         )}
 
-        {/* Game over */}
         {game.finished && (
           <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
             <div className="bg-black p-8 text-center max-w-xs w-full"
@@ -309,7 +298,7 @@ export default function GameBoard({
               {game.winner === null ? (
                 <>
                   <p className="text-[#ffdd00] text-sm font-pixel mb-1"
-                    style={{ textShadow: '2px 2px 0 #3a3300' }}>EMPATE!</p>
+                    style={{ textShadow: '2px 2px 0 #3a3300' }}>DRAW!</p>
                   <p className="text-[#ffdd00]/50 text-[8px] font-pixel mb-6">
                     {game.scores[1]} - {game.scores[2]}
                   </p>
@@ -318,7 +307,7 @@ export default function GameBoard({
                 <>
                   <p className="text-[#00ff41] text-[9px] font-pixel mb-1 pixel-blink">NEW RECORD!</p>
                   <p className="text-[#00ff41] text-sm font-pixel mb-1"
-                    style={{ textShadow: '2px 2px 0 #003a0f' }}>VOCE VENCEU</p>
+                    style={{ textShadow: '2px 2px 0 #003a0f' }}>YOU WON</p>
                   <p className="text-[#00ff41]/50 text-[8px] font-pixel mb-6">
                     {game.scores[myPlayer]} - {game.scores[opponent]}
                   </p>
@@ -327,7 +316,7 @@ export default function GameBoard({
                 <>
                   <p className="text-[#ff3333] text-[9px] font-pixel mb-1">GAME OVER</p>
                   <p className="text-[#ff3333] text-sm font-pixel mb-1"
-                    style={{ textShadow: '2px 2px 0 #3a0000' }}>VOCE PERDEU</p>
+                    style={{ textShadow: '2px 2px 0 #3a0000' }}>YOU LOST</p>
                   <p className="text-[#ff3333]/50 text-[8px] font-pixel mb-6">
                     {game.scores[myPlayer]} - {game.scores[opponent]}
                   </p>
@@ -337,12 +326,12 @@ export default function GameBoard({
                 <button onClick={onRestart}
                   className="flex-1 py-3 text-[7px] font-pixel bg-[#00ff41] text-black hover:bg-[#00cc33] transition-colors"
                   style={{ boxShadow: '3px 3px 0 #003a0f' }}>
-                  REVANCHE
+                  REMATCH
                 </button>
                 <button onClick={onLeave}
                   className="flex-1 py-3 text-[7px] font-pixel text-[#ff3333] hover:bg-[#ff333322] transition-colors"
                   style={{ border: '2px solid #ff333360' }}>
-                  SAIR
+                  LEAVE
                 </button>
               </div>
             </div>
