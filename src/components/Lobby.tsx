@@ -23,7 +23,8 @@ export default function Lobby({ status, searchSeconds, onFind, onCancel, onOpenP
   const fmtTime = (s: number) =>
     `${Math.floor(s / 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`
 
-  const remaining = Math.max(0, 15 - searchSeconds)
+  const BOT_TIMEOUT = 15
+  const remaining = Math.max(0, BOT_TIMEOUT - searchSeconds)
 
   const logoPixels = [
     [0,1,0,1,0],
@@ -35,7 +36,6 @@ export default function Lobby({ status, searchSeconds, onFind, onCancel, onOpenP
 
   return (
     <div className="crt min-h-screen bg-[#0a0a0a] flex flex-col items-center justify-center p-6 overflow-hidden">
-      {/* Starfield */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         {Array.from({ length: 40 }, (_, i) => (
           <div key={i} className="absolute w-px h-px bg-white rounded-full"
@@ -50,7 +50,6 @@ export default function Lobby({ status, searchSeconds, onFind, onCancel, onOpenP
 
       <div className="relative z-10 w-full max-w-sm flex flex-col items-center gap-8">
 
-        {/* Pixel art logo */}
         <div className="text-center">
           <div className="flex gap-1 justify-center mb-5">
             {logoPixels.map((row, ri) => (
@@ -85,18 +84,16 @@ export default function Lobby({ status, searchSeconds, onFind, onCancel, onOpenP
           </p>
         </div>
 
-        {/* Profile button */}
         {onOpenProfile && (
           <button onClick={onOpenProfile}
             className="flex items-center gap-2 px-4 py-2 transition-all hover:scale-105 active:scale-95"
             style={{ border: '2px solid #00ff4160', boxShadow: '2px 2px 0 #003a0f' }}>
             <span className="text-[#00ff41] text-[9px] font-pixel">👾</span>
-            <span className="text-[#00ff41] text-[8px] font-pixel">{playerName ?? 'PERFIL'}</span>
+            <span className="text-[#00ff41] text-[8px] font-pixel">{playerName ?? 'PROFILE'}</span>
             <span className="text-[#00ff41]/40 text-[7px] font-pixel">▶</span>
           </button>
         )}
 
-        {/* Main panel */}
         <div className="w-full p-6 bg-black"
           style={{
             border: '4px solid #00ff41',
@@ -130,15 +127,15 @@ export default function Lobby({ status, searchSeconds, onFind, onCancel, onOpenP
                   border: '2px solid #00ff41',
                   boxShadow: '4px 4px 0 #003a0f',
                 }}>
-                ▶ JOGAR AGORA
+                ▶ PLAY NOW
               </button>
 
               <div className="text-center py-3" style={{ border: '2px solid #ffffff15' }}>
-                <p className="text-white/30 text-[7px] font-pixel mb-2">MODO VERSUS</p>
+                <p className="text-white/30 text-[7px] font-pixel mb-2">VERSUS MODE</p>
                 <div className="flex justify-around">
                   <div>
                     <p className="text-[#ff3333] text-[9px] font-pixel">P1</p>
-                    <p className="text-white/30 text-[7px] font-pixel">VOCE</p>
+                    <p className="text-white/30 text-[7px] font-pixel">YOU</p>
                   </div>
                   <p className="text-white/20 text-[9px] font-pixel self-center">VS</p>
                   <div>
@@ -152,7 +149,6 @@ export default function Lobby({ status, searchSeconds, onFind, onCancel, onOpenP
 
           {status === 'searching' && (
             <div className="text-center space-y-6">
-              {/* Radar alternando vermelho/azul */}
               <div className="flex justify-center gap-1 py-2">
                 {Array.from({ length: 8 }, (_, i) => {
                   const active = frame % 8 === i || frame % 8 === (i + 1) % 8
@@ -169,7 +165,7 @@ export default function Lobby({ status, searchSeconds, onFind, onCancel, onOpenP
               </div>
 
               <div>
-                <p className="text-white/60 text-[9px] font-pixel mb-2">PROCURANDO...</p>
+                <p className="text-white/60 text-[9px] font-pixel mb-2">SEARCHING...</p>
                 <p className="text-[#ffdd00] text-base font-pixel"
                   style={{ textShadow: '2px 2px 0 #3a3300' }}>
                   {fmtTime(searchSeconds)}
@@ -183,9 +179,9 @@ export default function Lobby({ status, searchSeconds, onFind, onCancel, onOpenP
                 <div className="w-full h-3 bg-[#111]" style={{ border: '2px solid #333' }}>
                   <div className="h-full transition-all duration-1000"
                     style={{
-                      width: `${Math.min(100, (searchSeconds / 30) * 100)}%`,
-                      backgroundColor: remaining <= 10 ? '#ff3333' : '#00ff41',
-                      boxShadow: remaining <= 10 ? '0 0 8px #ff3333' : '0 0 8px #00ff41',
+                      width: `${Math.min(100, (searchSeconds / BOT_TIMEOUT) * 100)}%`,
+                      backgroundColor: remaining <= 5 ? '#ff3333' : '#00ff41',
+                      boxShadow: remaining <= 5 ? '0 0 8px #ff3333' : '0 0 8px #00ff41',
                     }} />
                 </div>
               </div>
@@ -193,7 +189,7 @@ export default function Lobby({ status, searchSeconds, onFind, onCancel, onOpenP
               <button onClick={onCancel}
                 className="w-full py-3 text-[9px] font-pixel transition-all hover:bg-[#ff333322]"
                 style={{ border: '2px solid #ff333360', color: '#ff3333' }}>
-                ✕ CANCELAR
+                ✕ CANCEL
               </button>
             </div>
           )}
@@ -201,7 +197,7 @@ export default function Lobby({ status, searchSeconds, onFind, onCancel, onOpenP
           {status === 'matched' && (
             <div className="text-center space-y-5 py-4">
               <p className="text-white text-[10px] font-pixel pixel-blink">
-                !! ADVERSARIO ENCONTRADO !!
+                !! OPPONENT FOUND !!
               </p>
               <div className="flex justify-center gap-2">
                 {['P', '1', 'V', 'S', 'P', '2'].map((c, i) => {
@@ -218,7 +214,7 @@ export default function Lobby({ status, searchSeconds, onFind, onCancel, onOpenP
                   )
                 })}
               </div>
-              <p className="text-white/40 text-[7px] font-pixel pixel-blink">CARREGANDO...</p>
+              <p className="text-white/40 text-[7px] font-pixel pixel-blink">LOADING...</p>
             </div>
           )}
         </div>
@@ -230,7 +226,7 @@ export default function Lobby({ status, searchSeconds, onFind, onCancel, onOpenP
           {onSignOut && (
             <button onClick={onSignOut}
               className="text-white/20 text-[6px] font-pixel hover:text-[#ff3333] transition-colors">
-              SAIR
+              SIGN OUT
             </button>
           )}
         </div>
