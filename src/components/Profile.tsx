@@ -25,7 +25,7 @@ export default function Profile({ profile, user, onLinkGoogle }: Props) {
           style={{ backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.15) 2px, rgba(0,0,0,0.15) 4px)' }} />
 
         <div className="relative flex items-center justify-between px-5 py-4" style={{ borderBottom: '2px solid #00ff4140' }}>
-          <p className="text-[#00ff41] text-[9px] font-pixel">★ PERFIL</p>
+          <p className="text-[#00ff41] text-[9px] font-pixel">★ PROFILE</p>
           <button onClick={closeProfile} className="text-[#ff3333] text-[9px] font-pixel hover:bg-[#ff333322] px-2 py-1" style={{ border: '1px solid #ff333340' }}>✕</button>
         </div>
 
@@ -37,8 +37,8 @@ export default function Profile({ profile, user, onLinkGoogle }: Props) {
             </div>
             <div>
               <p className="text-[#00ff41] text-[11px] font-pixel">{user.name}</p>
-              <p className="text-white/30 text-[6px] font-pixel mt-0.5 truncate">{user.email || 'CONTA TEMPORÁRIA'}</p>
-              {myRank > 0 && <p className="text-[#ffdd00] text-[7px] font-pixel mt-0.5">#{myRank} NO RANKING</p>}
+              <p className="text-white/30 text-[6px] font-pixel mt-0.5 truncate">{user.email || 'TEMPORARY ACCOUNT'}</p>
+              {myRank > 0 && <p className="text-[#ffdd00] text-[7px] font-pixel mt-0.5">#{myRank} ON LEADERBOARD</p>}
             </div>
           </div>
 
@@ -46,19 +46,19 @@ export default function Profile({ profile, user, onLinkGoogle }: Props) {
             <button onClick={onLinkGoogle}
               className="w-full py-3 text-[8px] font-pixel transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
               style={{ backgroundColor: '#ffdd00', color: '#000', border: '2px solid #ffdd00', boxShadow: '3px 3px 0 #3a3300' }}>
-              ★ SALVAR PROGRESSO COM GOOGLE
+              ★ SAVE PROGRESS WITH GOOGLE
             </button>
           )}
 
           {loading && !myStats ? (
-            <p className="text-[#00ff41]/50 text-[8px] font-pixel text-center py-4 pixel-blink">CARREGANDO...</p>
+            <p className="text-[#00ff41]/50 text-[8px] font-pixel text-center py-4 pixel-blink">LOADING...</p>
           ) : (
             <>
               <div className="grid grid-cols-4 gap-2">
                 {[
-                  { label: 'VITÓRIAS', value: myStats?.wins ?? 0, color: '#00ff41' },
-                  { label: 'DERROTAS', value: myStats?.losses ?? 0, color: '#ff3333' },
-                  { label: 'EMPATES', value: myStats?.draws ?? 0, color: '#ffdd00' },
+                  { label: 'WINS', value: myStats?.wins ?? 0, color: '#00ff41' },
+                  { label: 'LOSSES', value: myStats?.losses ?? 0, color: '#ff3333' },
+                  { label: 'DRAWS', value: myStats?.draws ?? 0, color: '#ffdd00' },
                   { label: 'WIN%', value: `${winRate}%`, color: '#3399ff' },
                 ].map(({ label, value, color }) => (
                   <div key={label} className="text-center py-2 bg-[#001a00]" style={{ border: `2px solid ${color}40` }}>
@@ -69,7 +69,7 @@ export default function Profile({ profile, user, onLinkGoogle }: Props) {
               </div>
               {totalGames > 0 && (
                 <div>
-                  <p className="text-white/30 text-[6px] font-pixel mb-1">{totalGames} PARTIDAS</p>
+                  <p className="text-white/30 text-[6px] font-pixel mb-1">{totalGames} GAMES</p>
                   <div className="w-full h-2 bg-[#111]" style={{ border: '1px solid #333' }}>
                     <div className="flex h-full">
                       {myStats!.wins > 0 && <div style={{ width: `${(myStats!.wins/totalGames)*100}%`, backgroundColor: '#00ff41' }} />}
@@ -84,13 +84,13 @@ export default function Profile({ profile, user, onLinkGoogle }: Props) {
 
           <div>
             <div className="flex items-center justify-between mb-2">
-              <p className="text-[#ffdd00] text-[8px] font-pixel">★ RANKING GLOBAL</p>
+              <p className="text-[#ffdd00] text-[8px] font-pixel">★ GLOBAL LEADERBOARD</p>
               <button onClick={refresh} className="text-[6px] font-pixel text-white/30 hover:text-white/60">↺</button>
             </div>
             <div className="space-y-1 max-h-44 overflow-y-auto" style={{ scrollbarWidth: 'none' }}>
               {leaderboard.length === 0 ? (
                 <p className="text-white/20 text-[7px] font-pixel text-center py-3">
-                  {totalGames === 0 ? 'JOGUE PARA APARECER AQUI' : 'SEM DADOS AINDA'}
+                  {totalGames === 0 ? 'PLAY TO APPEAR HERE' : 'NO DATA YET'}
                 </p>
               ) : leaderboard.map((p, i) => {
                 const isMe = p.playerId === user.id
