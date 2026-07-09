@@ -23,7 +23,7 @@ export default function Lobby({ status, searchSeconds, onFind, onCancel, onOpenP
   const fmtTime = (s: number) =>
     `${Math.floor(s / 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`
 
-  const remaining = Math.max(0, 30 - searchSeconds)
+  const remaining = Math.max(0, 15 - searchSeconds)
 
   const logoPixels = [
     [0,1,0,1,0],
