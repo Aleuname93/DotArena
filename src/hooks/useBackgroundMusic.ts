@@ -27,11 +27,18 @@ export function useBackgroundMusic(track: TrackName, volume = 0.5) {
       try { sourceRef.current.stop() } catch { /* ja parado */ }
       sourceRef.current = null
     }
-    activeTrackRef.current = name
-    if (!name) return
+
+    if (!name) {
+      activeTrackRef.current = null
+      return
+    }
 
     const buffer = buffersRef.current[name]
-    if (!buffer) return
+    if (!buffer) {
+      // ainda carregando: nao marca como ativo, assim o loader toca assim que chegar
+      activeTrackRef.current = null
+      return
+    }
 
     const source = ctx.createBufferSource()
     source.buffer = buffer
@@ -39,6 +46,7 @@ export function useBackgroundMusic(track: TrackName, volume = 0.5) {
     source.connect(gain)
     source.start(0)
     sourceRef.current = source
+    activeTrackRef.current = name
   }, [])
 
   useEffect(() => {
@@ -59,7 +67,7 @@ export function useBackgroundMusic(track: TrackName, volume = 0.5) {
           const buf = await ctx.decodeAudioData(arr)
           if (cancelled) return
           buffersRef.current[key] = buf
-          if (unlockedRef.current && activeTrackRef.current !== key && wantedTrackRef.current === key) {
+          if (unlockedRef.current && wantedTrackRef.current === key && !sourceRef.current) {
             playTrack(key)
           }
         } catch { /* ignora falha ao carregar uma faixa */ }
