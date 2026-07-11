@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react'
 import { useAuth } from './hooks/useAuth'
 import { useMatchmaking } from './hooks/useMatchmaking'
 import { useProfile } from './hooks/useProfile'
+import { useBackgroundMusic } from './hooks/useBackgroundMusic'
 import { postResult } from './lib/playerStats'
 import AuthScreen from './components/AuthScreen'
 import Lobby from './components/Lobby'
@@ -19,6 +20,9 @@ export default function App() {
 
   const profile = useProfile(user)
   const reportedRef = useRef(false)
+
+  const isPlayingMatch = status === 'playing' || status === 'playing_bot'
+  useBackgroundMusic(isPlayingMatch ? 'game' : 'lobby')
 
   useEffect(() => {
     if (!game.finished || status !== 'playing' || !myPlayer || !user || reportedRef.current) return
