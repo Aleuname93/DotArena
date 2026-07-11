@@ -22,7 +22,7 @@ export default function App() {
   const reportedRef = useRef(false)
 
   const isPlayingMatch = status === 'playing' || status === 'playing_bot'
-  useBackgroundMusic(isPlayingMatch ? 'game' : 'lobby')
+  const { muted, toggleMute } = useBackgroundMusic(isPlayingMatch ? 'game' : 'lobby')
 
   useEffect(() => {
     if (!game.finished || status !== 'playing' || !myPlayer || !user || reportedRef.current) return
@@ -33,21 +33,45 @@ export default function App() {
 
   useEffect(() => { if (!game.finished) reportedRef.current = false }, [game.finished])
 
-  if (step !== 'authenticated') return <AuthScreen auth={auth} />
+  const muteButton = (
+    <button
+      onClick={toggleMute}
+      aria-label={muted ? 'Ativar musica' : 'Silenciar musica'}
+      className="fixed top-3 right-3 z-[60] w-9 h-9 flex items-center justify-center bg-black"
+      style={{ border: '2px solid #00ff4160' }}
+    >
+      <span className="text-[13px]" style={{ color: muted ? '#ff3333' : '#00ff41' }}>
+        {muted ? '🔇' : '🔊'}
+      </span>
+    </button>
+  )
+
+  if (step !== 'authenticated') {
+    return (
+      <>
+        {muteButton}
+        <AuthScreen auth={auth} />
+      </>
+    )
+  }
 
   if ((status === 'playing' || status === 'playing_bot' || status === 'opponent_left') && myPlayer) {
     return (
-      <GameBoard
-        game={game} myPlayer={myPlayer} isMyTurn={isMyTurn}
-        opponentLeft={status === 'opponent_left'} isBotGame={status === 'playing_bot'}
-        lastOpponentMove={lastOpponentMove} lastMoveKey={lastMoveKey}
-        onMove={sendMove} onRestart={sendRestart} onLeave={leaveGame}
-      />
+      <>
+        {muteButton}
+        <GameBoard
+          game={game} myPlayer={myPlayer} isMyTurn={isMyTurn}
+          opponentLeft={status === 'opponent_left'} isBotGame={status === 'playing_bot'}
+          lastOpponentMove={lastOpponentMove} lastMoveKey={lastMoveKey}
+          onMove={sendMove} onRestart={sendRestart} onLeave={leaveGame}
+        />
+      </>
     )
   }
 
   return (
     <>
+      {muteButton}
       <Lobby
         status={status} searchSeconds={searchSeconds}
         onFind={findMatch} onCancel={cancelSearch}

@@ -221,7 +221,7 @@ export default function Lobby({ status, searchSeconds, onFind, onCancel, onOpenP
 
         <div className="flex items-center gap-4">
           <p className="text-white/15 text-[6px] font-pixel text-center">
-            © 2024 DOT ARENA • INSERT COIN
+            © 2026 DOT ARENA • INSERT COIN
           </p>
           {onSignOut && (
             <button onClick={onSignOut}

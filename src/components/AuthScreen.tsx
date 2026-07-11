@@ -72,7 +72,7 @@ export default function AuthScreen({ auth }: Props) {
           )}
         </div>
 
-        <p className="text-white/15 text-[6px] font-pixel">© 2024 DOT ARENA • INSERT COIN</p>
+        <p className="text-white/15 text-[6px] font-pixel">© 2026 DOT ARENA • INSERT COIN</p>
       </div>
     </div>
   )
