@@ -219,16 +219,19 @@ export default function Lobby({ status, searchSeconds, onFind, onCancel, onOpenP
           )}
         </div>
 
-        <div className="flex items-center gap-4">
-          <p className="text-white/15 text-[6px] font-pixel text-center">
-            © 2026 DOT ARENA • INSERT COIN
-          </p>
-          {onSignOut && (
-            <button onClick={onSignOut}
-              className="text-white/20 text-[6px] font-pixel hover:text-[#ff3333] transition-colors">
-              SIGN OUT
-            </button>
-          )}
+        <div className="flex flex-col items-center gap-2">
+          <div className="flex items-center gap-4">
+            <p className="text-white/15 text-[6px] font-pixel text-center">
+              © 2026 DOT ARENA • INSERT COIN
+            </p>
+            {onSignOut && (
+              <button onClick={onSignOut}
+                className="text-white/20 text-[6px] font-pixel hover:text-[#ff3333] transition-colors">
+                SIGN OUT
+              </button>
+            )}
+          </div>
+          <p className="text-white/10 text-[5px] font-pixel">A AICCOB GAME • MUSIC © LEONARDO BOCCIA</p>
         </div>
       </div>
     </div>

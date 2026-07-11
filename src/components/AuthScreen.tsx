@@ -73,6 +73,7 @@ export default function AuthScreen({ auth }: Props) {
         </div>
 
         <p className="text-white/15 text-[6px] font-pixel">© 2026 DOT ARENA • INSERT COIN</p>
+        <p className="text-white/10 text-[5px] font-pixel -mt-6">A AICCOB GAME • MUSIC © LEONARDO BOCCIA</p>
       </div>
     </div>
   )
